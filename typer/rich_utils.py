@@ -20,6 +20,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
+from docstring_parser import parse
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -183,39 +184,32 @@ def _get_help_text(
     if obj.deprecated:
         yield Text(DEPRECATED_STRING, style=STYLE_DEPRECATED)
 
-    # Fetch and dedent the help text
-    help_text = inspect.cleandoc(obj.help or "")
-
-    # Trim off anything that comes after \f on its own line
-    help_text = help_text.partition("\f")[0]
-
     # Get the first paragraph
-    first_line = help_text.split("\n\n")[0]
+    docstring = parse(inspect.cleandoc(obj.help or ""))
+    short_desc = docstring.short_description
+    long_desc = docstring.long_description
     # Remove single linebreaks
-    if markup_mode != MARKUP_MODE_MARKDOWN and not first_line.startswith("\b"):
-        first_line = first_line.replace("\n", " ")
+    if markup_mode != MARKUP_MODE_MARKDOWN and not short_desc.startswith("\b"):
+        short_desc = short_desc.replace("\n", " ")
     yield _make_rich_text(
-        text=first_line.strip(),
+        text=short_desc.strip(),
         style=STYLE_HELPTEXT_FIRST_LINE,
         markup_mode=markup_mode,
     )
 
     # Get remaining lines, remove single line breaks and format as dim
-    remaining_paragraphs = help_text.split("\n\n")[1:]
-    if remaining_paragraphs:
-        if markup_mode != MARKUP_MODE_RICH:
-            # Remove single linebreaks
-            remaining_paragraphs = [
-                x.replace("\n", " ").strip()
-                if not x.startswith("\b")
-                else "{}\n".format(x.strip("\b\n"))
-                for x in remaining_paragraphs
-            ]
-            # Join back together
-            remaining_lines = "\n".join(remaining_paragraphs)
+    if long_desc:
+        # Remove single linebreaks
+        long_lines = long_desc.split("\n\n")
+
+        if markup_mode is MARKUP_MODE_RICH:
+            remaining_lines = "\n\n".join(long_lines)
+
+        elif markup_mode is MARKUP_MODE_MARKDOWN:
+            remaining_lines = "\n".join(long_lines)
+
         else:
-            # Join with double linebreaks if markdown
-            remaining_lines = "\n\n".join(remaining_paragraphs)
+            remaining_lines = "\n".join(long_lines)
 
         yield _make_rich_text(
             text=remaining_lines,
