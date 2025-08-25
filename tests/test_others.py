@@ -278,3 +278,21 @@ def test_split_opt():
     prefix, opt = _split_opt("verbose")
     assert prefix == ""
     assert opt == "verbose"
+
+
+@pytest.mark.parametrize("custom_value", [True, False])
+def test_envvar_truthiness(custom_value: bool):
+    ENV_KEY = "MYVERBOSITY"
+    old_value = os.environ.get(ENV_KEY, None)
+    os.environ[ENV_KEY] = f"{custom_value}"
+    app = typer.Typer()
+
+    @app.command()
+    def main(verbose: bool = typer.Option(False, "--verbose", "-v", envvar=ENV_KEY)):
+        typer.echo(f"verbose={verbose}")
+
+    result = runner.invoke(app, [])
+
+    assert f"verbose={custom_value}" in result.output
+    if old_value is not None:
+        os.environ[ENV_KEY] = old_value
