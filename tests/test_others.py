@@ -280,11 +280,24 @@ def test_split_opt():
     assert opt == "verbose"
 
 
-@pytest.mark.parametrize("custom_value", [True, False])
-def test_envvar_truthiness(custom_value: bool):
+@pytest.mark.parametrize(
+    "envvar_value,expected_value",
+    [
+        ("True", "True"),
+        ("False", "False"),
+        ("", "False"),
+        ("Something", "True"),
+        ("0", "False"),
+        ("no", "False"),
+        ("off", "False"),
+        ("f", "False"),
+        ("n", "False"),
+    ],
+)
+def test_envvar_truthiness(envvar_value: str, expected_value: bool):
     ENV_KEY = "MYVERBOSITY"
     old_value = os.environ.get(ENV_KEY, None)
-    os.environ[ENV_KEY] = f"{custom_value}"
+    os.environ[ENV_KEY] = envvar_value
     app = typer.Typer()
 
     @app.command()
@@ -293,6 +306,6 @@ def test_envvar_truthiness(custom_value: bool):
 
     result = runner.invoke(app, [])
 
-    assert f"verbose={custom_value}" in result.output
+    assert f"verbose={expected_value}" in result.output
     if old_value is not None:
         os.environ[ENV_KEY] = old_value
