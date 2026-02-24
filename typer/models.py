@@ -4,7 +4,6 @@ from collections.abc import Callable, Sequence
 from typing import (
     TYPE_CHECKING,
     Any,
-    Optional,
     TypeVar,
 )
 
@@ -230,7 +229,7 @@ class CommandInfo:
 class TyperInfo:
     def __init__(
         self,
-        typer_instance: Optional["Typer"] = Default(None),
+        typer_instance: type["Typer"] | None = Default(None),
         *,
         name: str | None = Default(None),
         cls: type["TyperGroup"] | None = Default(None),
