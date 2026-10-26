@@ -10,7 +10,7 @@ from uuid import UUID
 from ._click import Context
 from ._click._compat import open_stream
 from ._click.exceptions import BadParameter
-from ._click.utils import LazyFile, format_filename, safecall
+from ._click.utils import LazyFile, _escape_control_characters, format_filename, safecall
 from ._typing import (
     get_args,
     get_origin,
@@ -357,6 +357,6 @@ def _open_cli_file(
                 ctx.call_on_close(safecall(f.flush))
 
         return f
-    except OSError as exc:  # pragma: no cover
-        message = f"'{format_filename(path)}': {exc.strerror}"
-        raise BadParameter(message, ctx=ctx, param=param) from exc
+    except OSError as exc:
+        filename = _escape_control_characters(format_filename(path))
+        raise BadParameter(f"'{filename}': {exc.strerror}", ctx=ctx, param=param) from exc
