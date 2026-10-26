@@ -7,7 +7,7 @@ from .globals import resolve_color_default
 from .utils import _escape_control_characters, echo, format_filename
 
 if TYPE_CHECKING:
-    from ..core import TyperParameter
+    from ..core import _TyperParameter
     from .core import Command, Context
 
 
@@ -83,7 +83,7 @@ class BadParameter(UsageError):
         self,
         message: str,
         ctx: Union["Context", None] = None,
-        param: Union["TyperParameter", None] = None,
+        param: Union["_TyperParameter", None] = None,
         param_hint: Sequence[str] | str | None = None,
     ) -> None:
         super().__init__(message, ctx)
@@ -111,7 +111,7 @@ class MissingParameter(BadParameter):
         self,
         message: str | None = None,
         ctx: Union["Context", None] = None,
-        param: Union["TyperParameter", None] = None,
+        param: Union["_TyperParameter", None] = None,
         param_hint: Sequence[str] | str | None = None,
         param_type: str | None = None,
     ) -> None:
@@ -135,9 +135,9 @@ class MissingParameter(BadParameter):
 
         msg = self.message
         if self.param is not None:
-            from ..core import TyperParameter
+            from ..core import _TyperParameter
 
-            assert isinstance(self.param, TyperParameter)
+            assert isinstance(self.param, _TyperParameter)
             msg_extra = self.param.get_missing_message(ctx=self.ctx)
             if msg_extra:
                 if msg:

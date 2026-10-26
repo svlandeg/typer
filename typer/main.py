@@ -15,8 +15,9 @@ from annotated_doc import Doc
 
 from . import _click
 from ._click.globals import get_current_context
+from ._coercion import resolve_type_descriptor
+from ._param_types import lenient_issubclass, parse_param_annotation
 from ._typing import get_args, get_origin
-from .coercion import resolve_type_descriptor
 from .completion import get_completion_inspect_parameters
 from .core import (
     DEFAULT_MARKUP_MODE,
@@ -40,7 +41,6 @@ from .models import (
     Required,
     TyperInfo,
 )
-from .param_types import lenient_issubclass, parse_param_annotation
 from .utils import get_params_from_function
 
 _original_except_hook = sys.excepthook
@@ -100,8 +100,8 @@ def except_hook(
 
 def get_install_completion_arguments() -> tuple[_click.Parameter, _click.Parameter]:
     install_param, show_param = get_completion_inspect_parameters()
-    click_install_param = get_param(install_param)
-    click_show_param = get_param(show_param)
+    click_install_param = _get_param(install_param)
+    click_show_param = _get_param(show_param)
     return click_install_param, click_show_param
 
 
@@ -1308,9 +1308,7 @@ def get_group_from_info(
             for sub_command_name, sub_command in sub_group.commands.items():
                 commands[sub_command_name] = sub_command
     solved_info = solve_typer_info_defaults(group_info)
-    params, context_param_name = get_params_ctx_param_name_from_function(
-        solved_info.callback
-    )
+    params, context_param_name = _get_params_name_from_function(solved_info.callback)
     cls = solved_info.cls or TyperGroup
     assert issubclass(cls, TyperGroup), f"{cls} should be a subclass of {TyperGroup}"
     group = cls(
@@ -1347,23 +1345,23 @@ def get_command_name(name: str) -> str:
     return name.lower().replace("_", "-")
 
 
-def get_option_flag_name(name: str) -> str:
+def _get_option_flag_name(name: str) -> str:
     return name.replace("_", "-")
 
 
 def get_default_option_flag_name(name: str, metavar: str | None) -> str:
-    flag_name = get_option_flag_name(name)
+    flag_name = _get_option_flag_name(name)
     if metavar is None:
         return flag_name
     if (
-        get_option_flag_name(metavar).replace("-", "_").casefold()
+        _get_option_flag_name(metavar).replace("-", "_").casefold()
         == flag_name.replace("-", "_").casefold()
     ):
-        return get_option_flag_name(metavar)
+        return _get_option_flag_name(metavar)
     return flag_name
 
 
-def get_params_ctx_param_name_from_function(
+def _get_params_name_from_function(
     callback: Callable[..., Any] | None,
 ) -> tuple[list[TyperArgument | TyperOption], str | None]:
     params = []
@@ -1374,7 +1372,7 @@ def get_params_ctx_param_name_from_function(
             if lenient_issubclass(param.annotation, _click.Context):
                 context_param_name = param_name
                 continue
-            params.append(get_param(param))
+            params.append(_get_param(param))
     return params, context_param_name
 
 
@@ -1391,9 +1389,7 @@ def get_command_from_info(
         use_help = inspect.getdoc(command_info.callback)
     else:
         use_help = inspect.cleandoc(use_help)
-    params, context_param_name = get_params_ctx_param_name_from_function(
-        command_info.callback
-    )
+    params, context_param_name = _get_params_name_from_function(command_info.callback)
     cls = command_info.cls or TyperCommand
     command = cls(
         name=name,
@@ -1464,7 +1460,7 @@ def get_callback(
     return wrapper
 
 
-def get_param(param: ParamMeta) -> TyperArgument | TyperOption:
+def _get_param(param: ParamMeta) -> TyperArgument | TyperOption:
     default_value = None
     required = False
     if isinstance(param.default, ParameterInfo):

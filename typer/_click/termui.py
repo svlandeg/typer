@@ -54,8 +54,8 @@ def _build_prompt(
     annotation: Any | None = None,
 ) -> str:
     # prevent circular imports
+    from .._param_types import choice_as_str, choice_coercion_annotation
     from ..models import OptionInfo
-    from ..param_types import choice_as_str, choice_coercion_annotation
 
     prompt = text
     if show_choices and annotation is not None:
@@ -111,11 +111,11 @@ def prompt(
                 echo(None, err=err)
             raise Abort() from None
 
-    from ..param_types import annotation_from_prompt
+    from .._param_types import annotation_from_prompt
 
     annotation = annotation_from_prompt(type, default)
     if value_proc is None:
-        from ..coercion import prompt_value_proc
+        from .._coercion import prompt_value_proc
 
         value_proc = prompt_value_proc(type, default)
 

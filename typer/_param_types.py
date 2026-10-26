@@ -16,6 +16,7 @@ from ._click.utils import (
     format_filename,
     safecall,
 )
+from ._display import get_error_msg
 from ._typing import (
     get_args,
     get_origin,
@@ -24,7 +25,6 @@ from ._typing import (
     is_union,
     literal_values,
 )
-from .display import get_error_msg
 from .models import (
     AnyType,
     FileBinaryRead,
@@ -37,7 +37,7 @@ from .models import (
 )
 
 if TYPE_CHECKING:
-    from .core import TyperParameter
+    from .core import _TyperParameter
 
 ParameterAnnotation: TypeAlias = Any
 
@@ -219,7 +219,7 @@ def coerce_cli_path(
     parameter_info: ParameterInfo,
     *,
     path_type: type[Any] | None,
-    param: "TyperParameter | None" = None,
+    param: "_TyperParameter | None" = None,
     ctx: Context | None = None,
 ) -> str | bytes | os.PathLike[str] | Path:
     if path_type is None or path_type is str or path_type is bytes:
@@ -315,7 +315,7 @@ def _open_cli_file(
     parameter_info: ParameterInfo,
     *,
     mode: str,
-    param: "TyperParameter | None" = None,
+    param: "_TyperParameter | None" = None,
     ctx: Context | None = None,
 ) -> IO[Any]:
     if hasattr(value, "read") or hasattr(value, "write"):

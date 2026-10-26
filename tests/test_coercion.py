@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import typer
-from typer.core import TyperParameter
+from typer.core import _TyperParameter
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -152,7 +152,7 @@ def test_passthrough_runtime_param_default() -> None:
         seen["val"] = val
 
     param = next(p for p in typer.main.get_command(app).params if p.name == "val")
-    assert isinstance(param, TyperParameter)
+    assert isinstance(param, _TyperParameter)
     assert param.get_runtime_param() is not None
     assert param.get_runtime_param().annotation is Widget
 
@@ -183,7 +183,7 @@ def test_widget_parsed_from_cli_with_parser() -> None:
         seen["val"] = val
 
     param = next(p for p in typer.main.get_command(app).params if p.name == "val")
-    assert isinstance(param, TyperParameter)
+    assert isinstance(param, _TyperParameter)
     assert param.get_runtime_param() is not None
     assert param.get_runtime_param().annotation is Widget
 

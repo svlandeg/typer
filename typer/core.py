@@ -15,18 +15,18 @@ from typing import (
     get_origin,
 )
 
-from . import _click, param_types
+from . import _click
 from ._click.parser import _OptionParser
 from ._click.shell_completion import CompletionItem
-from ._typing import Literal
-from .coercion import (
+from ._coercion import (
     RuntimeParam,
     TypeDescriptor,
     build_runtime_param,
 )
-from .display import describe_number_range
+from ._display import describe_number_range
+from ._param_types import choice_as_str, normalize_choice_value
+from ._typing import Literal
 from .exceptions import Abort, Exit
-from .param_types import choice_as_str, normalize_choice_value
 from .utils import parse_boolean_env_var
 
 MarkupMode = Literal["markdown", "rich", None]
@@ -90,7 +90,7 @@ def _typer_param_setup_autocompletion_compat(
         self._custom_shell_complete = compat_autocompletion
 
 
-class TyperParameter(_click.core.Parameter):
+class _TyperParameter(_click.core.Parameter):
     """Typer parameter with runtime coercion."""
 
     _runtime_param: RuntimeParam | None
@@ -184,7 +184,7 @@ class TyperParameter(_click.core.Parameter):
                 label = "|".join([*dict.fromkeys(type_names)])
             else:
                 normalized_mapping = {
-                    c: param_types.normalize_choice_value(c, desc.case_sensitive, ctx)
+                    c: normalize_choice_value(c, desc.case_sensitive, ctx)
                     for c in desc.choices or ()
                 }
                 label = "|".join(normalized_mapping.values())
@@ -387,7 +387,7 @@ def _main(
         sys.exit(1)
 
 
-class TyperArgument(TyperParameter):
+class TyperArgument(_TyperParameter):
     param_type_name = "argument"
 
     def __init__(
@@ -565,7 +565,7 @@ class TyperArgument(TyperParameter):
         return describe_number_range(self.min, self.max)
 
 
-class TyperOption(TyperParameter):
+class TyperOption(_TyperParameter):
     param_type_name = "option"
 
     _depr_flag_value: bool | None

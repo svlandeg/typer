@@ -40,7 +40,7 @@ def option(
 
 def help_option(param_decls: list[str]) -> Callable[[Command], Command]:
     """Help option which prints the help page and exits the program."""
-    from ..coercion import bool_flag_type_descriptor
+    from .._coercion import bool_flag_type_descriptor
 
     def show_help(ctx: Context, param: Parameter, value: bool) -> None:
         """Callback that print the help page on ``<stdout>`` and exits."""

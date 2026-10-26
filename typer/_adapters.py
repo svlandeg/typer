@@ -9,19 +9,19 @@ from pydantic import AfterValidator, BeforeValidator, Field, TypeAdapter, Valida
 from pydantic.errors import PydanticSchemaGenerationError
 
 from ._click import _compat
-from ._typing import is_literal_type, is_number_type, literal_values
-from .models import ParameterInfo
-from .param_types import (
+from ._param_types import (
     coerce_cli_choice,
     coerce_cli_path,
     lenient_issubclass,
     routes_to_path,
     validate_annotation_structure,
 )
+from ._typing import is_literal_type, is_number_type, literal_values
+from .models import ParameterInfo
 
 if TYPE_CHECKING:
     from ._click import Context
-    from .core import TyperParameter
+    from .core import _TyperParameter
 
 _CTX_KEY = "ctx"
 _PARAM_KEY = "param"
@@ -29,14 +29,14 @@ _PARAM_KEY = "param"
 
 def validation_context(
     ctx: "Context",
-    param: "TyperParameter",
+    param: "_TyperParameter",
 ) -> dict[str, Any]:
     return {_CTX_KEY: ctx, _PARAM_KEY: param}
 
 
 def validation_ctx_param(
     info: ValidationInfo,
-) -> tuple["Context | None", "TyperParameter | None"]:
+) -> tuple["Context | None", "_TyperParameter | None"]:
     context = info.context
     if not context:
         return None, None

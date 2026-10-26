@@ -7,10 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 from ._click import Context
 from ._click.exceptions import BadParameter, UsageError
-from ._typing import get_args, get_origin, is_number_type
-from .display import get_error_msg
-from .models import OptionInfo, ParameterInfo
-from .param_types import (
+from ._display import get_error_msg
+from ._param_types import (
     ParameterAnnotation,
     _open_cli_file,
     annotation_from_prompt,
@@ -23,11 +21,13 @@ from .param_types import (
     routes_to_path,
     validate_annotation_structure,
 )
+from ._typing import get_args, get_origin, is_number_type
+from .models import OptionInfo, ParameterInfo
 
 if TYPE_CHECKING:
     from pydantic import TypeAdapter
 
-    from .core import TyperParameter
+    from .core import _TyperParameter
 
 
 @dataclass(frozen=True)
@@ -134,7 +134,7 @@ class RuntimeParam(ABC):
     parameter_info: ParameterInfo
     annotation: ParameterAnnotation
 
-    def coerce(self, value: Any, param: "TyperParameter", ctx: Context) -> Any:
+    def coerce(self, value: Any, param: "_TyperParameter", ctx: Context) -> Any:
         is_multi_value = param.multiple or param.nargs == -1
         if value is None:
             if is_multi_value:
@@ -145,7 +145,7 @@ class RuntimeParam(ABC):
         return self._coerce_value(value, param=param, ctx=ctx)
 
     @abstractmethod
-    def _coerce_value(self, value: Any, param: "TyperParameter", ctx: Context) -> Any:
+    def _coerce_value(self, value: Any, param: "_TyperParameter", ctx: Context) -> Any:
         pass  # pragma: no cover
 
 
@@ -155,10 +155,10 @@ class AdapterRuntimeParam(RuntimeParam):
 
     adapter: "TypeAdapter[Any]"
 
-    def _coerce_value(self, value: Any, param: "TyperParameter", ctx: Context) -> Any:
+    def _coerce_value(self, value: Any, param: "_TyperParameter", ctx: Context) -> Any:
         from pydantic import ValidationError
 
-        from .adapters import validation_context
+        from ._adapters import validation_context
 
         try:
             return self.adapter.validate_python(
@@ -175,7 +175,7 @@ class FileRuntimeParam(RuntimeParam):
 
     file_annotation: Any
 
-    def _coerce_value(self, value: Any, param: "TyperParameter", ctx: Context) -> Any:
+    def _coerce_value(self, value: Any, param: "_TyperParameter", ctx: Context) -> Any:
         def coerce_non_file(item: Any, annotation: Any) -> Any:
             # Ensure non-file annotations (e.g. in mixed tuples) are also dealt with
             type_desc = resolve_type_descriptor(annotation, self.parameter_info)
@@ -218,7 +218,7 @@ class FileRuntimeParam(RuntimeParam):
 class PassThroughRuntimeParam(RuntimeParam):
     """Coercion for annotations that cannot use a Pydantic TypeAdapter."""
 
-    def _coerce_value(self, value: Any, param: "TyperParameter", ctx: Context) -> Any:
+    def _coerce_value(self, value: Any, param: "_TyperParameter", ctx: Context) -> Any:
         annotation = self.annotation
         if isinstance(annotation, type):
             if isinstance(value, annotation):
@@ -233,7 +233,7 @@ class PassThroughRuntimeParam(RuntimeParam):
 
 def build_runtime_param(descriptor: TypeDescriptor) -> RuntimeParam:
     """Build runtime coercion from a resolved type descriptor."""
-    from . import adapters
+    from . import _adapters
 
     args = {
         "annotation": descriptor.annotation,
@@ -241,7 +241,7 @@ def build_runtime_param(descriptor: TypeDescriptor) -> RuntimeParam:
     }
     if descriptor.file_annotation is not None:
         return FileRuntimeParam(**args, file_annotation=descriptor.file_annotation)
-    adapter = adapters.try_build_adapter(**args)
+    adapter = _adapters.try_build_adapter(**args)
     if adapter is not None:
         return AdapterRuntimeParam(**args, adapter=adapter)
     return PassThroughRuntimeParam(**args)
@@ -262,12 +262,12 @@ def prompt_value_proc(
     """Coerce interactive prompt input via the runtime adapter layer."""
     from pydantic import ValidationError
 
-    from . import adapters
+    from . import _adapters
 
     annotation = annotation_from_prompt(param_type, default)
 
     parameter_info = OptionInfo()
-    adapter = adapters.try_build_adapter(annotation, parameter_info)
+    adapter = _adapters.try_build_adapter(annotation, parameter_info)
 
     if adapter is not None:
 
