@@ -463,14 +463,14 @@ class TyperArgument(_TyperParameter):
             default_value=default_value,
         )
 
-    def rich_display_name(self) -> str:
+    def _rich_display_name(self) -> str:
         """Argument display name for the Rich help name column."""
         name = self.display_name_raw
         if self.metavar is None and self.nargs != 1:
             name += "..."
         return name
 
-    def usage_display_name(self) -> str:
+    def _usage_display_name(self) -> str:
         """Argument name for the usage line only."""
         name = self.display_name_raw
         if self.required:
@@ -489,7 +489,7 @@ class TyperArgument(_TyperParameter):
     def get_help_record(self, ctx: _click.Context) -> tuple[str, str] | None:
         if self.hidden:
             return None
-        name = self.rich_display_name()
+        name = self._rich_display_name()
         type_str = self.display_type_rich(ctx=ctx)
         if type_str:
             name = f"{name} {type_str}"
@@ -526,7 +526,7 @@ class TyperArgument(_TyperParameter):
             # Typer override end
             if default_string:
                 extra.append(_("default: {default}").format(default=default_string))
-        range_str = self.get_number_range_help_str()
+        range_str = self._get_number_range_help_str()
         if range_str:
             extra.append(range_str)
         if self.required:
@@ -556,12 +556,12 @@ class TyperArgument(_TyperParameter):
         return name, [arg], []
 
     def get_usage_pieces(self, ctx: _click.Context) -> list[str]:
-        return [self.usage_display_name()]
+        return [self._usage_display_name()]
 
     def add_to_parser(self, parser: _OptionParser, ctx: _click.Context) -> None:
         parser.add_argument(dest=self.name, nargs=self.nargs, obj=self)
 
-    def get_number_range_help_str(self) -> str | None:
+    def _get_number_range_help_str(self) -> str | None:
         return describe_number_range(self.min, self.max)
 
 
@@ -928,7 +928,7 @@ class TyperOption(_TyperParameter):
             if default_string:
                 extra.append(_("default: {default}").format(default=default_string))
 
-        range_str = self.get_number_range_help_str()
+        range_str = self._get_number_range_help_str()
         if range_str:
             extra.append(range_str)
 
@@ -960,7 +960,7 @@ class TyperOption(_TyperParameter):
             return str(value_display) + "..."
         return value_display
 
-    def get_number_range_help_str(self) -> str | None:
+    def _get_number_range_help_str(self) -> str | None:
         if self.count and self.min == 0 and self.max is None:
             return None
         return describe_number_range(self.min, self.max)

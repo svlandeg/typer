@@ -396,7 +396,7 @@ def _print_options_panel(
         if display_type_str is not None:
             types_data.append(display_type_str)
 
-        range_str = param.get_number_range_help_str()
+        range_str = param._get_number_range_help_str()
         if range_str:
             types_data.append(RANGE_STRING.format(range_str))
 
