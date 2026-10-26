@@ -10,7 +10,12 @@ from uuid import UUID
 from ._click import Context
 from ._click._compat import open_stream
 from ._click.exceptions import BadParameter
-from ._click.utils import LazyFile, _escape_control_characters, format_filename, safecall
+from ._click.utils import (
+    LazyFile,
+    _escape_control_characters,
+    format_filename,
+    safecall,
+)
 from ._typing import (
     get_args,
     get_origin,
@@ -359,4 +364,6 @@ def _open_cli_file(
         return f
     except OSError as exc:
         filename = _escape_control_characters(format_filename(path))
-        raise BadParameter(f"'{filename}': {exc.strerror}", ctx=ctx, param=param) from exc
+        raise BadParameter(
+            f"'{filename}': {exc.strerror}", ctx=ctx, param=param
+        ) from exc
