@@ -171,7 +171,7 @@ ignore = [
 # rich_utils is allowed to use rich imports
 "typer/rich_utils.py" = ["TID251"]
 # adapters is allowed to import pydantic at module level
-"typer/adapters.py" = ["TID253"]
+"typer/_adapters.py" = ["TID253"]
 # This file is more readable without yield from
 "docs_src/progressbar/tutorial004_py310.py" = ["UP028", "B007"]
 # Default mutable data structure
